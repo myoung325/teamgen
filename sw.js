@@ -1,8 +1,9 @@
-const CACHE_NAME = 'team-gen-v1';
+const CACHE_NAME = 'team-gen-v4';
 const ASSETS = [
   'index.html',
-  'manifest.json'
-  // Add your icons here too
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 // Install: Cache all assets

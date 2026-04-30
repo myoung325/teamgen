@@ -7,37 +7,96 @@
   
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f5f7fa">
-  
+
   <style>
-    /* ... your existing styles ... */
-    body { font-family: Arial, sans-serif; margin: 2rem; background: #f5f7fa; color: #333; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 2rem; background: #f5f7fa; color: #333; line-height: 1.6;
+    }
     h1 { margin-bottom: 0.5rem; }
-    textarea { width: 100%; height: 150px; margin-bottom: 1rem; padding: 0.5rem; font-size: 1rem; }
-    input, button { padding: 0.5rem; font-size: 1rem; margin-right: 0.5rem; }
-    button { cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+    #inputSection.collapsed { display: none; }
+    textarea {
+      width: 100%; height: 150px; margin-bottom: 1rem; padding: 0.75rem;
+      font-size: 1rem; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
+    }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      margin-bottom: 2rem; background: #fff; padding: 1rem; border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    input[type="number"] {
+      padding: 0.5rem; font-size: 1rem; width: 60px; border-radius: 4px; border: 1px solid #ccc;
+    }
+    button {
+      padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer;
+      background: #007bff; color: white; border: none; border-radius: 4px; transition: all 0.2s;
+    }
     button:hover { background: #0056b3; }
-    .teams { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-    .team { background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    .team h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+    .btn-secondary { background: #6c757d; }
+    .btn-secondary:hover { background: #5a6268; }
+    .btn-modify { background: #28a745; }
+    .btn-modify:hover { background: #218838; }
+
+    .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .team {
+      background: white; padding: 1.5rem; border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 3px solid transparent;
+      transition: all 0.3s ease; position: relative;
+    }
+
+    /* Editable Title Styling */
+    .team h3 { 
+      margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.5rem; 
+      outline: none; transition: background 0.2s; border-radius: 4px;
+    }
+    .team h3:hover { background: #f8f9fa; cursor: text; }
+    .team h3:focus { background: #fff; border-bottom-color: #007bff; }
+
+    .team.highlighted {
+      border-color: #007bff; background: #e7f3ff; transform: scale(1.03);
+      box-shadow: 0 8px 20px rgba(0,123,255,0.2);
+    }
+    .score-display { font-weight: bold; font-size: 1.2rem; color: #007bff; margin-bottom: 0.5rem; }
+    .rank-badge {
+      position: absolute; top: 10px; right: 10px;
+      background: #eee; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;
+    }
+    .scoring-controls { margin-top: 1rem; display: none; border-top: 1px dashed #ccc; padding-top: 1rem; }
+    .scoring-controls.active { display: flex; gap: 5px; }
+    .score-input { width: 70px !important; }
   </style>
 </head>
 <body>
 
 <h1>Team Generator</h1>
-<p>Paste student names (one per line), choose number of teams, and generate.</p>
 
-<textarea id="names" placeholder="Enter one student name per line..."></textarea>
+<div id="inputSection">
+  <p>Enter names (one per line):</p>
+  <textarea id="names" placeholder="Alice&#10;Bob&#10;Charlie..."></textarea>
+</div>
 
-<div>
-  <label for="teamCount">Number of teams:</label>
-  <input type="number" id="teamCount" min="1" value="2">
-  <button onclick="generateTeams()">Generate Teams</button>
+<div class="controls">
+  <div id="setupButtons">
+    <label for="teamCount">Teams:</label>
+    <input type="number" id="teamCount" min="1" value="2">
+    <button onclick="handleGenerate(false)">Generate Teams</button>
+    <button onclick="handleGenerate(true)">Generate Random Teams</button>
+  </div>
+  
+  <button id="modifyBtn" class="btn-modify" style="display:none;" onclick="showInput()">Modify List</button>
+  
+  <button class="btn-secondary" onclick="selectRandomTeam()">Random Team</button>
+  <button class="btn-secondary" onclick="selectNextTeam()">Next Team</button>
+  <button id="scoreToggle" class="btn-secondary" onclick="toggleScoring()">Enable Scoring</button>
 </div>
 
 <div id="output" class="teams"></div>
 
 <script>
-// --- Your Existing Logic ---
+let currentHighlightIndex = -1;
+let teamsData = [];
+let scoringEnabled = false;
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -46,47 +105,138 @@ function shuffle(array) {
   return array;
 }
 
-function generateTeams() {
+function handleGenerate(isRandom) {
   const raw = document.getElementById("names").value.trim();
+  if (!raw) { alert("Please enter names."); return; }
+
+  let names = raw.split("\n").map(n => n.trim()).filter(n => n.length > 0);
+  if (isRandom) shuffle(names);
+
   const teamCount = parseInt(document.getElementById("teamCount").value, 10);
+  const finalCount = Math.min(teamCount, names.length);
+  
+  const baseSize = Math.floor(names.length / finalCount);
+  const remainder = names.length % finalCount;
+
+  teamsData = [];
+  let startIndex = 0;
+
+  for (let i = 0; i < finalCount; i++) {
+    const size = baseSize + (i < remainder ? 1 : 0);
+    const members = names.slice(startIndex, startIndex + size);
+    
+    teamsData.push({
+      id: i,
+      name: `Team ${i + 1}`,
+      members: members,
+      score: 0,
+      rank: 1
+    });
+
+    startIndex += size;
+  }
+
+  renderTeams();
+  hideInput();
+}
+
+function hideInput() {
+  document.getElementById("inputSection").classList.add("collapsed");
+  document.getElementById("setupButtons").style.display = "none";
+  document.getElementById("modifyBtn").style.display = "inline-block";
+}
+
+function showInput() {
+  document.getElementById("inputSection").classList.remove("collapsed");
+  document.getElementById("setupButtons").style.display = "inline-block";
+  document.getElementById("modifyBtn").style.display = "none";
+}
+
+function toggleScoring() {
+  scoringEnabled = !scoringEnabled;
+  document.getElementById("scoreToggle").textContent = scoringEnabled ? "Disable Scoring" : "Enable Scoring";
+  renderTeams();
+}
+
+function renameTeam(id, newName) {
+  const team = teamsData.find(t => t.id === id);
+  if (team) {
+    team.name = newName;
+  }
+}
+
+function addPoints(teamId) {
+  const input = document.getElementById(`score-input-${teamId}`);
+  const points = parseInt(input.value) || 0;
+  const team = teamsData.find(t => t.id === teamId);
+  if (team) {
+    team.score += points;
+    input.value = "";
+    updateRanks();
+    renderTeams();
+  }
+}
+
+function updateRanks() {
+  const sorted = [...teamsData].sort((a, b) => b.score - a.score);
+  let currentRank = 1;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && sorted[i].score < sorted[i-1].score) {
+      currentRank = i + 1;
+    }
+    const originalTeam = teamsData.find(t => t.id === sorted[i].id);
+    originalTeam.rank = currentRank;
+  }
+}
+
+function renderTeams() {
   const output = document.getElementById("output");
   output.innerHTML = "";
 
-  if (!raw) { alert("Please enter at least one name."); return; }
-  if (teamCount < 1) { alert("Number of teams must be at least 1."); return; }
-
-  const names = raw.split("\n").map(n => n.trim()).filter(n => n.length > 0);
-  shuffle(names);
-
-  const teams = Array.from({ length: teamCount }, () => []);
-  names.forEach((name, index) => {
-    teams[index % teamCount].push(name);
-  });
-
-  teams.forEach((team, i) => {
+  teamsData.forEach((team) => {
     const div = document.createElement("div");
-    div.className = "team";
-    const title = document.createElement("h3");
-    title.textContent = `Team ${i + 1}`;
-    div.appendChild(title);
-    const list = document.createElement("ul");
-    team.forEach(member => {
-      const li = document.createElement("li");
-      li.textContent = member;
-      list.appendChild(li);
-    });
-    div.appendChild(list);
+    div.className = `team ${currentHighlightIndex === team.id ? 'highlighted' : ''}`;
+    
+    const rankSuffix = ["st", "nd", "rd"][team.rank - 1] || "th";
+    const rankHtml = scoringEnabled ? `<span class="rank-badge">${team.rank}${rankSuffix}</span>` : "";
+
+    div.innerHTML = `
+      ${rankHtml}
+      <h3 contenteditable="true" onblur="renameTeam(${team.id}, this.innerText)">${team.name}</h3>
+      <div class="score-display">${scoringEnabled ? 'Points: ' + team.score : ''}</div>
+      <ul>${team.members.map(m => `<li>${m}</li>`).join('')}</ul>
+      <div class="scoring-controls ${scoringEnabled ? 'active' : ''}">
+        <input type="number" id="score-input-${team.id}" class="score-input" placeholder="Pts">
+        <button onclick="addPoints(${team.id})">Add</button>
+      </div>
+    `;
     output.appendChild(div);
   });
 }
 
-// --- PWA Service Worker Registration ---
+function selectRandomTeam() {
+  if (teamsData.length === 0) return;
+  currentHighlightIndex = Math.floor(Math.random() * teamsData.length);
+  renderTeams();
+  // We use a slight delay or target the DOM since renderTeams recreates elements
+  setTimeout(() => {
+    const highlighted = document.querySelector('.highlighted');
+    if (highlighted) highlighted.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 10);
+}
+
+function selectNextTeam() {
+  if (teamsData.length === 0) return;
+  currentHighlightIndex = (currentHighlightIndex + 1) % teamsData.length;
+  renderTeams();
+  setTimeout(() => {
+    const highlighted = document.querySelector('.highlighted');
+    if (highlighted) highlighted.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 10);
+}
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log("Service Worker Registered!", reg.scope))
-      .catch(err => console.log("Service Worker registration failed:", err));
-  });
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
 }
 </script>
 
