@@ -11,34 +11,46 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 1rem; /* Reduced margin from 2rem to 1rem */
+      margin: 1rem;
       background: #f5f7fa; 
       color: #333; 
-      line-height: 1.6;
+      line-height: 1.4;
     }
     
-    /* Removed H1 styles as we are removing the element */
-
     #inputSection.collapsed { display: none; }
     
     textarea {
       width: 100%; height: 120px; margin-bottom: 1rem; padding: 0.75rem;
-      font-size: 1rem; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
+      font-size: 0.95rem; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
     }
 
     .controls {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: stretch;
       margin-bottom: 1.5rem; background: #fff; padding: 0.8rem; border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
+    .setup-group { display: flex; align-items: center; gap: 0.5rem; }
+
     input[type="number"] {
-      padding: 0.5rem; font-size: 1rem; width: 55px; border-radius: 4px; border: 1px solid #ccc;
+      padding: 0.4rem; font-size: 1rem; width: 50px; border-radius: 4px; border: 1px solid #ccc;
     }
 
     button {
-      padding: 0.5rem 1rem; font-size: 0.95rem; cursor: pointer;
-      background: #007bff; color: white; border: none; border-radius: 4px; transition: all 0.2s;
+      padding: 0.4rem 0.7rem; 
+      font-size: 0.75rem; /* Smaller text as requested */
+      line-height: 1.2;
+      cursor: pointer;
+      background: #007bff; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      transition: all 0.2s;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 45px;
     }
 
     button:hover { background: #0056b3; }
@@ -46,18 +58,20 @@
     .btn-secondary:hover { background: #5a6268; }
     .btn-modify { background: #28a745; }
     .btn-modify:hover { background: #218838; }
+    .btn-reset { background: #dc3545; }
+    .btn-reset:hover { background: #c82333; }
 
-    .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
     
     .team {
-      background: white; padding: 1.2rem; border-radius: 8px;
+      background: white; padding: 1rem; border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid transparent;
       transition: all 0.3s ease; position: relative;
     }
 
     .team h3 { 
-      margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.4rem; 
-      font-size: 1.1rem; outline: none; border-radius: 4px;
+      margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.3rem; 
+      font-size: 1rem; outline: none; border-radius: 4px;
     }
     .team h3:hover { background: #f8f9fa; cursor: text; }
 
@@ -66,41 +80,41 @@
       box-shadow: 0 5px 15px rgba(0,123,255,0.15);
     }
 
-    .score-display { font-weight: bold; font-size: 1.1rem; color: #007bff; margin-bottom: 0.4rem; }
+    .score-display { font-weight: bold; font-size: 1rem; color: #007bff; margin-bottom: 0.4rem; }
     
     .rank-badge {
       position: absolute; top: 8px; right: 8px;
-      background: #eee; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;
+      background: #eee; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;
     }
 
     .scoring-controls { margin-top: 0.8rem; display: none; border-top: 1px dashed #ccc; padding-top: 0.8rem; }
     .scoring-controls.active { display: flex; gap: 5px; }
-    .score-input { width: 60px !important; padding: 0.4rem; }
+    .score-input { width: 55px !important; padding: 0.3rem; font-size: 0.9rem; }
 
-    ul { margin: 0.5rem 0; padding-left: 1.2rem; }
-    li { margin-bottom: 0.2rem; }
+    ul { margin: 0.4rem 0; padding-left: 1.1rem; }
+    li { margin-bottom: 0.1rem; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
 <div id="inputSection">
-  <p style="margin-top:0;">Enter names (one per line):</p>
+  <p style="margin-top:0; font-size: 0.9rem;">Enter names (one per line):</p>
   <textarea id="names" placeholder="Alice&#10;Bob&#10;Charlie..."></textarea>
 </div>
 
 <div class="controls">
-  <div id="setupButtons">
-    <label for="teamCount">Teams:</label>
+  <div id="setupButtons" class="setup-group">
+    <label for="teamCount" style="font-size: 0.9rem;">Teams:</label>
     <input type="number" id="teamCount" min="1" value="2">
-    <button onclick="handleGenerate(false)">Generate</button>
-    <button onclick="handleGenerate(true)">Randomize</button>
+    <button onclick="handleGenerate(false)" title="Split the list into consecutive groups">Generate<br>Sequential<br>Teams</button>
+    <button onclick="handleGenerate(true)" title="Shuffle students into random teams">Generate<br>Random<br>Teams</button>
   </div>
   
-  <button id="modifyBtn" class="btn-modify" style="display:none;" onclick="showInput()">Modify List</button>
+  <button id="modifyBtn" class="btn-modify" style="display:none;" onclick="showInput()" title="Edit the list of names">Modify<br>Student<br>List</button>
   
-  <button class="btn-secondary" onclick="selectRandomTeam()">Random Team</button>
-  <button class="btn-secondary" onclick="selectNextTeam()">Next Team</button>
-  <button id="scoreToggle" class="btn-secondary" onclick="toggleScoring()">Enable Scoring</button>
+  <button class="btn-secondary" onclick="selectRandomTeam()" title="Select a random team">Select<br>Random<br>Team</button>
+  <button class="btn-secondary" onclick="selectNextTeam()" title="Select the next team">Select<br>Next<br>Team</button>
+  <button id="scoreToggle" class="btn-secondary" onclick="toggleScoring()" title="Show/hide points and rankings">Enable<br>Team<br>Scoring</button>
 </div>
 
 <div id="output" class="teams"></div>
@@ -155,19 +169,45 @@ function handleGenerate(isRandom) {
 function hideInput() {
   document.getElementById("inputSection").classList.add("collapsed");
   document.getElementById("setupButtons").style.display = "none";
-  document.getElementById("modifyBtn").style.display = "inline-block";
+  document.getElementById("modifyBtn").style.display = "flex";
 }
 
 function showInput() {
   document.getElementById("inputSection").classList.remove("collapsed");
-  document.getElementById("setupButtons").style.display = "inline-block";
+  document.getElementById("setupButtons").style.display = "flex";
   document.getElementById("modifyBtn").style.display = "none";
 }
 
 function toggleScoring() {
   scoringEnabled = !scoringEnabled;
-  document.getElementById("scoreToggle").textContent = scoringEnabled ? "Disable Scoring" : "Enable Scoring";
+  const btn = document.getElementById("scoreToggle");
+  
+  if (scoringEnabled) {
+    btn.innerHTML = "Disable<br>Team<br>Scoring";
+    if (!document.getElementById("resetBtn")) {
+      const resetBtn = document.createElement("button");
+      resetBtn.id = "resetBtn";
+      resetBtn.className = "btn-reset";
+      resetBtn.innerHTML = "Reset<br>All<br>Scores";
+      resetBtn.onclick = resetScores;
+      document.querySelector(".controls").appendChild(resetBtn);
+    }
+  } else {
+    btn.innerHTML = "Enable<br>Team<br>Scoring";
+    const resetBtn = document.getElementById("resetBtn");
+    if (resetBtn) resetBtn.remove();
+  }
   renderTeams();
+}
+
+function resetScores() {
+  if (confirm("Reset all team scores to zero?")) {
+    teamsData.forEach(team => {
+      team.score = 0;
+      team.rank = 1;
+    });
+    renderTeams();
+  }
 }
 
 function renameTeam(id, newName) {
