@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Team Generator</title>
+  <title>Offline Team Generator</title>
   
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f5f7fa">
@@ -11,67 +11,80 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 2rem; background: #f5f7fa; color: #333; line-height: 1.6;
+      margin: 1rem; /* Reduced margin from 2rem to 1rem */
+      background: #f5f7fa; 
+      color: #333; 
+      line-height: 1.6;
     }
-    h1 { margin-bottom: 0.5rem; }
+    
+    /* Removed H1 styles as we are removing the element */
+
     #inputSection.collapsed { display: none; }
+    
     textarea {
-      width: 100%; height: 150px; margin-bottom: 1rem; padding: 0.75rem;
+      width: 100%; height: 120px; margin-bottom: 1rem; padding: 0.75rem;
       font-size: 1rem; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;
     }
+
     .controls {
       display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
-      margin-bottom: 2rem; background: #fff; padding: 1rem; border-radius: 8px;
+      margin-bottom: 1.5rem; background: #fff; padding: 0.8rem; border-radius: 8px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
+
     input[type="number"] {
-      padding: 0.5rem; font-size: 1rem; width: 60px; border-radius: 4px; border: 1px solid #ccc;
+      padding: 0.5rem; font-size: 1rem; width: 55px; border-radius: 4px; border: 1px solid #ccc;
     }
+
     button {
-      padding: 0.6rem 1.2rem; font-size: 1rem; cursor: pointer;
+      padding: 0.5rem 1rem; font-size: 0.95rem; cursor: pointer;
       background: #007bff; color: white; border: none; border-radius: 4px; transition: all 0.2s;
     }
+
     button:hover { background: #0056b3; }
     .btn-secondary { background: #6c757d; }
     .btn-secondary:hover { background: #5a6268; }
     .btn-modify { background: #28a745; }
     .btn-modify:hover { background: #218838; }
 
-    .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+    .teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    
     .team {
-      background: white; padding: 1.5rem; border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 3px solid transparent;
+      background: white; padding: 1.2rem; border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid transparent;
       transition: all 0.3s ease; position: relative;
     }
 
-    /* Editable Title Styling */
     .team h3 { 
-      margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.5rem; 
-      outline: none; transition: background 0.2s; border-radius: 4px;
+      margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 0.4rem; 
+      font-size: 1.1rem; outline: none; border-radius: 4px;
     }
     .team h3:hover { background: #f8f9fa; cursor: text; }
-    .team h3:focus { background: #fff; border-bottom-color: #007bff; }
 
     .team.highlighted {
-      border-color: #007bff; background: #e7f3ff; transform: scale(1.03);
-      box-shadow: 0 8px 20px rgba(0,123,255,0.2);
+      border-color: #007bff; background: #e7f3ff; transform: scale(1.02);
+      box-shadow: 0 5px 15px rgba(0,123,255,0.15);
     }
-    .score-display { font-weight: bold; font-size: 1.2rem; color: #007bff; margin-bottom: 0.5rem; }
+
+    .score-display { font-weight: bold; font-size: 1.1rem; color: #007bff; margin-bottom: 0.4rem; }
+    
     .rank-badge {
-      position: absolute; top: 10px; right: 10px;
-      background: #eee; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;
+      position: absolute; top: 8px; right: 8px;
+      background: #eee; padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;
     }
-    .scoring-controls { margin-top: 1rem; display: none; border-top: 1px dashed #ccc; padding-top: 1rem; }
+
+    .scoring-controls { margin-top: 0.8rem; display: none; border-top: 1px dashed #ccc; padding-top: 0.8rem; }
     .scoring-controls.active { display: flex; gap: 5px; }
-    .score-input { width: 70px !important; }
+    .score-input { width: 60px !important; padding: 0.4rem; }
+
+    ul { margin: 0.5rem 0; padding-left: 1.2rem; }
+    li { margin-bottom: 0.2rem; }
   </style>
 </head>
 <body>
 
-<h1>Team Generator</h1>
-
 <div id="inputSection">
-  <p>Enter names (one per line):</p>
+  <p style="margin-top:0;">Enter names (one per line):</p>
   <textarea id="names" placeholder="Alice&#10;Bob&#10;Charlie..."></textarea>
 </div>
 
@@ -79,8 +92,8 @@
   <div id="setupButtons">
     <label for="teamCount">Teams:</label>
     <input type="number" id="teamCount" min="1" value="2">
-    <button onclick="handleGenerate(false)">Generate Teams</button>
-    <button onclick="handleGenerate(true)">Generate Random Teams</button>
+    <button onclick="handleGenerate(false)">Generate</button>
+    <button onclick="handleGenerate(true)">Randomize</button>
   </div>
   
   <button id="modifyBtn" class="btn-modify" style="display:none;" onclick="showInput()">Modify List</button>
@@ -132,7 +145,6 @@ function handleGenerate(isRandom) {
       score: 0,
       rank: 1
     });
-
     startIndex += size;
   }
 
@@ -160,9 +172,7 @@ function toggleScoring() {
 
 function renameTeam(id, newName) {
   const team = teamsData.find(t => t.id === id);
-  if (team) {
-    team.name = newName;
-  }
+  if (team) team.name = newName;
 }
 
 function addPoints(teamId) {
@@ -218,7 +228,6 @@ function selectRandomTeam() {
   if (teamsData.length === 0) return;
   currentHighlightIndex = Math.floor(Math.random() * teamsData.length);
   renderTeams();
-  // We use a slight delay or target the DOM since renderTeams recreates elements
   setTimeout(() => {
     const highlighted = document.querySelector('.highlighted');
     if (highlighted) highlighted.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

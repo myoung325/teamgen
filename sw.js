@@ -1,4 +1,4 @@
-const CACHE_NAME = 'team-gen-v4';
+const CACHE_NAME = 'team-gen-v5';
 const ASSETS = [
   'index.html',
   'manifest.json',
